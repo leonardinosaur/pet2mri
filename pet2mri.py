@@ -2,11 +2,21 @@ import os, sys
 import shutil
 from glob import glob
 import argparse
+import random
 
 import pandas as pd
 import nibabel as ni
 
 from datetime import datetime
+
+
+
+def gen_rand_id():
+	alpha_num = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+	return ''.join(random.choice(alpha_num) for i in range(16))
+
+
+
 
 subj_dir = os.environ['SUBJECTS_DIR']
 print subj_dir
@@ -54,43 +64,60 @@ while os.path.exists(currdir):
 	count += 1
 	currdir = petdir + "%03d"%count
 cmd = 'mkdir -p %s' % currdir
-os.system(cmd)
+
+
+# Copy the input PET volume to the currdir
+prereg_vol = currdir + '/PET_prereg.mgz'
+shutil.copy(args.input, prereg_vol)
+
 
 # If we made it this far, everything is a go.
 # Burn baby burn.
 
 # Register PET to MRI
 if args.regtype == 'bb':
-	if args.contrast == 't1':
 
-		# Create random_id for job
+	# Create random id for job
+	randid = gen_rand_id()
+	regfile = currdir + '/regfile.dat'
 
-		# Creat register file
-		cmd = 'bbregister --s %s --mov %s --reg %s --t1'  % (args.subject, args.input, args.)
+	# Creat register file
+	cmd = 'bbregister --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
 
-		# Apply registration file
-		cmd = 'mri_vol2vol --mov %s --targ fsurf/%s/mri/orig.mgz --reg regfiles/%s --o %s' % (pv, fs_pid, regfile, outfname)
+	# Apply registration file
+	coreg_vol = petdir + '/PET_coreg.mgz'
+	cmd = 'mri_vol2vol --mov %s --targ %s/mri/orig.mgz --reg %s --o %s' % (prereg_vol, sdir, regfile, coreg_vol)
 
-		# Convert to nifti
-		cmd = 'mri_convert %s %s'
+	# Convert to nifti
+	cmd = 'mri_convert %s %s' % (coreg_vol, coreg_vol.replace('.mgz', '.nii.gz'))
+
 
 
 # Calculate SUVrs
 
 # make stats directory
+stat_dir = currdir + '/stats/'
+cmd = 'mkdir -p %s' % stat_dir
 
-# copy aseg to PET folder in nifti format
+# copy mri and aseg to PET folder in nifti format
+src_aseg = sdir + '/mri/aparc+aseg.mgz'
+targ_aseg = stat_dir + '/aseg.nii.gz'
+cmd = 'mri_convert %s %s' % (src_aseg, targ_aseg)
 
 # Read recon-all stats
 
 
 # Load aseg and pet data
-aseg_data, pet_data = ni.load().get_data(), ni.load().get_data()
+aseg_data, pet_data = ni.load(targ_aseg).get_data(), ni.load(coreg_vol.replace('.mgz', '.nii.gz')).get_data()
 labels = set(aseg_data.flatten())
 
-mus, stds, vols = [], [], []
-for label in labels:
+# Get mean uptake from reference
+lmu, rmu = np.mean(pet_data[np.where(aseg_data == 8)]), np.mean(pet_data[np.where(aseg_data == 47)])
+ref_val = 0.5 * (lmu + rmu)
 
+regs, mus, stds, vols = [], [], [], []
+for label in labels:
+	mus.append(np.mean(pet_data[np.where(aseg_data == label)]/ref_val)
 	# Get region name
 
 
