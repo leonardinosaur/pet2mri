@@ -5,16 +5,11 @@ import argparse
 import random
 
 import pandas as pd
+import numpy as np
 import nibabel as ni
+import matplotlib.pyplot as plt
 
 from datetime import datetime
-
-
-
-def gen_rand_id():
-	alpha_num = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-	return ''.join(random.choice(alpha_num) for i in range(16))
-
 
 
 
@@ -35,6 +30,7 @@ parser.add_argument('-r', '--regtype', help = 'Registration cost function - mi (
 parser.add_argument('-c', '--contrast', help = 'Contrast')
 
 
+# Not yet implemented
 parser.add_argument('-v', '--visqc', help = 'Visual QC')
 parser.add_argument('-ir', '--inputreg', help = 'Input registration file (e.g. regfile.dat)')
 
@@ -46,9 +42,9 @@ args = parser.parse_args()
 if not os.path.exists(args.input):
 	sys.exit('Error: Input volume %s does not exist' % (args.input))
 
-sdir = subj_dir += args.subject
+sdir = subj_dir + args.subject
 if not os.path.exists(sdir):
-	sys.exist('Error: Subject %s not found in SUBJECTS_DIR %s' % (args.subject, subj_dir))
+	sys.exit('Error: Subject %s not found in SUBJECTS_DIR %s' % (args.subject, subj_dir))
 
 
 # Make a PET directory
@@ -64,33 +60,40 @@ while os.path.exists(currdir):
 	count += 1
 	currdir = petdir + "%03d"%count
 cmd = 'mkdir -p %s' % currdir
-
+os.system(cmd)
 
 # Copy the input PET volume to the currdir
-prereg_vol = currdir + '/PET_prereg.mgz'
+voldir = currdir + '/vols/'
+cmd = 'mkdir -p %s' % voldir
+os.system(cmd)
+
+prereg_vol = voldir + '/PET_prereg.nii.gz'
 shutil.copy(args.input, prereg_vol)
 
 
 # If we made it this far, everything is a go.
-# Burn baby burn.
+
 
 # Register PET to MRI
 if args.regtype == 'bb':
 
-	# Create random id for job
-	randid = gen_rand_id()
-	regfile = currdir + '/regfile.dat'
-
 	# Creat register file
+	regdir = currdir + '/regfiles/'
+	cmd = 'mkdir -p %s' % regdir
+	os.system(cmd)
+
+	regfile = regdir + '/regfile.dat'
 	cmd = 'bbregister --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
+	os.system(cmd)
 
 	# Apply registration file
-	coreg_vol = petdir + '/PET_coreg.mgz'
+	coreg_vol = voldir + '/PET_coreg.mgz'
 	cmd = 'mri_vol2vol --mov %s --targ %s/mri/orig.mgz --reg %s --o %s' % (prereg_vol, sdir, regfile, coreg_vol)
+	os.system(cmd)
 
 	# Convert to nifti
 	cmd = 'mri_convert %s %s' % (coreg_vol, coreg_vol.replace('.mgz', '.nii.gz'))
-
+	os.system(cmd)
 
 
 # Calculate SUVrs
@@ -98,13 +101,20 @@ if args.regtype == 'bb':
 # make stats directory
 stat_dir = currdir + '/stats/'
 cmd = 'mkdir -p %s' % stat_dir
+os.system(cmd)
 
 # copy mri and aseg to PET folder in nifti format
 src_aseg = sdir + '/mri/aparc+aseg.mgz'
 targ_aseg = stat_dir + '/aseg.nii.gz'
 cmd = 'mri_convert %s %s' % (src_aseg, targ_aseg)
+os.system(cmd)
 
-# Read recon-all stats
+src_orig = sdir + '/mri/orig.mgz'
+targ_orig = stat_dir + '/orig.nii.gz'
+cmd = 'mri_convert %s %s ' % (src_orig, targ_orig)
+os.system(cmd)
+
+# Read recon-all stats for volumes (future)
 
 
 # Load aseg and pet data
@@ -112,19 +122,42 @@ aseg_data, pet_data = ni.load(targ_aseg).get_data(), ni.load(coreg_vol.replace('
 labels = set(aseg_data.flatten())
 
 # Get mean uptake from reference
+label_df = pd.read_csv('fs_gm.csv', header=None)
+label_df.columns = ['Region', 'Label']
+
 lmu, rmu = np.mean(pet_data[np.where(aseg_data == 8)]), np.mean(pet_data[np.where(aseg_data == 47)])
 ref_val = 0.5 * (lmu + rmu)
 
-regs, mus, stds, vols = [], [], [], []
-for label in labels:
-	mus.append(np.mean(pet_data[np.where(aseg_data == label)]/ref_val)
-	# Get region name
 
+mus, stds, vols = [], [], []
+for ind in range(len(label_df)):
+	roi, label = label_df.Region.values[ind], label_df.Label.values[ind]
+	mus.append(np.mean(pet_data[np.where(aseg_data == label)])/ref_val)
+	# stds.append(np.std(pet_data[np.where(aseg_data == label)])/ref_val)
+label_df['SUVr_mean'] = mus
 
 # Write out to .csv file
+outname = stat_dir + 'suvr_data.csv'
+label_df.to_csv(outname, index=False)
 
 
+# Make JPEG dir
+jpg_dir = currdir + '/pngs/'
+os.system('mkdir -p %s' % jpg_dir)
+orig_data = ni.load(targ_orig).get_data()
+oshape = orig_data.shape
+pshape = pet_data.shape
 
-# Screen capture for QCing purposes
-if args.visqc:
-	print ''
+print 'Orig Shape: ', oshape
+print 'PET Shape: ', pshape
+
+for sl in range(oshape[1]):
+	plt.figure(figsize = (10, 8))
+	plt.imshow(orig_data[:, :, sl].transpose())
+	plt.imshow(pet_data[:, :, sl].transpose(), cmap = 'hot', alpha = 0.5)
+	plt.savefig(jpg_dir + 'image%03d'%sl  + '.png', bbox_inches='tight', pad_inches=0.0)
+	plt.clf()
+
+print 'Completed processing PET volume'
+print 'Started at: ', start
+print 'Finished at: ', str(datetime.now())
