@@ -5,6 +5,14 @@ Processing and semi-quantification of positron emission tomography data
 FreeSurfer, Python 2.7, Pandas, NumPy, Matplotlib, and Nibabel.
 
 ## Usage
+After downloaded the script, put it in a directory that is in your path. Then go to the directory and type
+the following to make it executable:
+
+'chmod +x pet2mri'
+
+Then you can use the script with:
+
+'pet2mri -i INPUT -s SUBJID -r REGTYPE -c CONTRAST'
 
 ## Outputs
 Running the pet2mri script creates a folder in the subject's FreeSurfer directory called 'pet/XXX/' where XXX is a three-digit number. Within this directory, the following subdirectories will also be created:
