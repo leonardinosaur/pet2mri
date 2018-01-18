@@ -5,6 +5,9 @@
 
 pet2mri documentation
 ======================
+This documentation is under construction.
+
+Contents:
 
 .. toctree::
    :maxdepth: 2
