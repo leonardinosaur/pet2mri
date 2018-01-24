@@ -1,3 +1,27 @@
+#!/usr/bin/env python
+
+"""
+
+USAGE: python pet2mri.py
+
+  
+	Required Arguments:
+
+		-i/--input : Input pet volume
+		-s/--subject : FreeSurfer subject id
+		-r/--regtype : Registration type
+
+	Conditionally Required Arguments:
+		-c/--contrast : Scan contrast (e.g., T1, T2); Required if REGTYPE is bb and TRACER is not specified
+		-t/--tracer : Radiotracter name; Required if REGTYPE is bb and CONTRAST is not specified
+
+
+"""
+
+import warnings
+warnings.filterwarnings("ignore")
+
+
 import os, sys
 import shutil
 from glob import glob
@@ -14,23 +38,36 @@ from datetime import datetime
 
 
 subj_dir = os.environ['SUBJECTS_DIR']
-print subj_dir
+print 'SUBJECTS_DIR is : ', subj_dir
 if not subj_dir.endswith('/'):
 	subj_dir += '/'
 
 
 start = str(datetime.now())
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description=__doc__)
 
 # Get inputs
 parser.add_argument('-i', '--input', help = 'Input PET volume - Nifi or MGH format')
 parser.add_argument('-s', '--subject', help = 'Subjects FreeSurfer directory')
 parser.add_argument('-r', '--regtype', help = 'Registration cost function - mi (normalized MI) or bb (boundary-based cost)')
-parser.add_argument('-c', '--contrast', help = 'Contrast')
 
+# One of these will be required for bb registration
+parser.add_argument('-c', '--contrast', help = 'Contrast')
+parser.add_argument('-t', '--tracer', help = 'PET radiotracer')
+
+# Dont think any other optinons are requied for mri_coreg
+parser.add_argument('-p', '--png', help = 'Output screenshots of coregistered PET volume overlaid on MRI')
+
+# This is optional
+parser.add_argument('-ro', '--regopts', help = 'Text-file with registration options')
+
+# Different reference options
+parser.add_argument('-rf', '--refmask', help = 'Specify mask of reference region')
+parser.add_argument('-fl', '--reflabel', help = 'Specify labels of reference region')
 
 # Not yet implemented
+
 parser.add_argument('-v', '--visqc', help = 'Visual QC')
 parser.add_argument('-ir', '--inputreg', help = 'Input registration file (e.g. regfile.dat)')
 
@@ -39,13 +76,24 @@ parser.add_argument('-ir', '--inputreg', help = 'Input registration file (e.g. r
 args = parser.parse_args()
 
 # Check input existence
+
+if not args.input:
+	sys.exit('Error: No input volume provided')
+if not args.subject:
+	sys.exit('Error: No subject specified')
+if not args.regtype:
+	sys.exit('Error: No registration type specified')
+
 if not os.path.exists(args.input):
 	sys.exit('Error: Input volume %s does not exist' % (args.input))
 
 sdir = subj_dir + args.subject
 if not os.path.exists(sdir):
-	sys.exit('Error: Subject %s not found in SUBJECTS_DIR %s' % (args.subject, subj_dir))
+	sys.exit('Error: Subject %s not found in $SUBJECTS_DIR %s' % (args.subject, subj_dir))
 
+# Check registration type
+if args.regtype != 'bb' and args.regtype != 'mi':
+	sys.exit('Error: Registration type %s not recognized' % (args.regtype))
 
 # Make a PET directory
 petdir = sdir + '/pet/'
@@ -71,30 +119,34 @@ prereg_vol = voldir + '/PET_prereg.nii.gz'
 shutil.copy(args.input, prereg_vol)
 
 
-# If we made it this far, everything is a go.
 
 
 # Register PET to MRI
+
+# Create register file
+regdir = currdir + '/regfiles/'
+cmd = 'mkdir -p %s' % regdir
+os.system(cmd)
+
+regfile = regdir + '/regfile.dat'
+
 if args.regtype == 'bb':
+	if args.contrast:
+		cmd = 'bbregister --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
+		os.system(cmd)
 
-	# Creat register file
-	regdir = currdir + '/regfiles/'
-	cmd = 'mkdir -p %s' % regdir
+else:
+	cmd = 'mri_coreg --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
 	os.system(cmd)
 
-	regfile = regdir + '/regfile.dat'
-	cmd = 'bbregister --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
-	os.system(cmd)
+# Apply registration file
+coreg_vol = voldir + '/PET_coreg.mgz'
+cmd = 'mri_vol2vol --mov %s --targ %s/mri/orig.mgz --reg %s --o %s' % (prereg_vol, sdir, regfile, coreg_vol)
+os.system(cmd)
 
-	# Apply registration file
-	coreg_vol = voldir + '/PET_coreg.mgz'
-	cmd = 'mri_vol2vol --mov %s --targ %s/mri/orig.mgz --reg %s --o %s' % (prereg_vol, sdir, regfile, coreg_vol)
-	os.system(cmd)
-
-	# Convert to nifti
-	cmd = 'mri_convert %s %s' % (coreg_vol, coreg_vol.replace('.mgz', '.nii.gz'))
-	os.system(cmd)
-
+# Convert output to Nifti
+cmd = 'mri_convert %s %s' % (coreg_vol, coreg_vol.replace('.mgz', '.nii.gz'))
+os.system(cmd)
 
 # Calculate SUVrs
 
@@ -141,22 +193,30 @@ outname = stat_dir + 'suvr_data.csv'
 label_df.to_csv(outname, index=False)
 
 
-# Make JPEG dir
-jpg_dir = currdir + '/pngs/'
-os.system('mkdir -p %s' % jpg_dir)
-orig_data = ni.load(targ_orig).get_data()
-oshape = orig_data.shape
-pshape = pet_data.shape
+# Make PNG dir
+if args.png:
+	jpg_dir = currdir + '/pngs/'
+	os.system('mkdir -p %s' % jpg_dir)
+	orig_data = ni.load(targ_orig).get_data()
+	oshape = orig_data.shape
+	pshape = pet_data.shape
 
-print 'Orig Shape: ', oshape
-print 'PET Shape: ', pshape
+	print 'Orig Shape: ', oshape
+	print 'PET Shape: ', pshape
 
-for sl in range(oshape[1]):
-	plt.figure(figsize = (10, 8))
-	plt.imshow(orig_data[:, :, sl].transpose())
-	plt.imshow(pet_data[:, :, sl].transpose(), cmap = 'hot', alpha = 0.5)
-	plt.savefig(jpg_dir + 'image%03d'%sl  + '.png', bbox_inches='tight', pad_inches=0.0)
-	plt.clf()
+	for sl in range(oshape[1]):
+		plt.figure(figsize = (10, 8))
+		plt.imshow(orig_data[:, :, sl].transpose())
+		plt.imshow(pet_data[:, :, sl].transpose(), cmap = 'hot', alpha = 0.5)
+		plt.savefig(jpg_dir + 'image%03d'%sl  + '.png', bbox_inches='tight', pad_inches=0.0)
+		plt.clf()
+
+# Compute registration of structural to MNI
+cmd = 'mni152reg --s %s' % args.subject
+
+# Apply registration to structural and to PET
+
+
 
 print 'Completed processing PET volume'
 print 'Started at: ', start

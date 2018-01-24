@@ -5,7 +5,7 @@
 
 pet2mri documentation
 ======================
-This documentation is under construction.
+Both the pet2mri scripts and this documentation documentation are under construction.
 
 Contents:
 

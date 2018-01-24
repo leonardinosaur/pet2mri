@@ -14,3 +14,6 @@ the script, place it in a directory in your path. Finally, make it executable wi
 	chmod +x pet2mri
 
 
+Quick Start
+===========
+
