@@ -3,12 +3,13 @@
 **********
 Processing
 **********
+This page contains additional information regarding pet2mri processing.
 
 
 Subject
 =======
 Before a PET image can be processed with pet2mri, the subject must have an anatomical (e.g. 3D-T1) volume that has been
-processing with FreeSurfer's 'recon-all' processing stream
+processing with FreeSurfer's 'recon-all' processing stream.
 
 Input
 =====
@@ -23,7 +24,7 @@ The registration type is specified by the -r/--regtype flag and is required. Two
 Boundary-based registration uses the FreeSurfer bbregister command under the hood. In brief, it maximizes the gradient
 across the grey white matter interface. Normalized mutual information registration performs similarly to spm_coreg in Matlab.
 
-If using boundary-based registration, the contrast must also be specified with the -c/--contrast flag. Possible values
+If using boundary-based registration, the contrast must also be specified with the -c/``--contrast`` flag. Possible values
 are 't1', 't2', and 'bold'. If you are unsure about the constrast, you can instead try to specify the radiotracer with
 the -t/--tracer flag. pet2mri will try to infer the contrast from the radiotracer.
 

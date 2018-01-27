@@ -90,7 +90,13 @@
 <li class="toctree-l1"><a class="reference internal" href="About.html">About</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Outputs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Outputs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#vols">vols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#regfiles">regfiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stats">stats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pngs">pngs</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -156,6 +162,38 @@
             
   <div class="section" id="outputs">
 <span id="id1"></span><h1>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h1>
+<p>The results from pet2mri processing will be in the following directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$SUBJECTS_DIR/SUBJID/pet/001/
+</pre></div>
+</div>
+<p>Where $SUBJECTS_DIR is the directory where all of your FreeSurfer processing was outputted to and SUBJID is
+the subject ID. This directory will contain several subdirectories that are described below.</p>
+<div class="section" id="vols">
+<h2>vols<a class="headerlink" href="#vols" title="Permalink to this headline">¶</a></h2>
+<p>This folder contains the PET volumes in Nifti format and a single text file. They are named as follows:</p>
+<ul class="simple">
+<li>PET_prereg.nii.gz : This is the input PET volume in Nifti format.</li>
+<li>PET_coreg.nii.gz : PET volume registered to the subject&#8217;s structural 3D-T1 image.</li>
+<li>input.txt : This is file contains the path of the input PET volume</li>
+</ul>
+</div>
+<div class="section" id="regfiles">
+<h2>regfiles<a class="headerlink" href="#regfiles" title="Permalink to this headline">¶</a></h2>
+<p>Contains registration file (regfile.dat) and other output files (logs) from the registration procedure.</p>
+</div>
+<div class="section" id="stats">
+<h2>stats<a class="headerlink" href="#stats" title="Permalink to this headline">¶</a></h2>
+<p>Several files relevant to qunatification of the PET volume are stored here:</p>
+<ul class="simple">
+<li>aseg.nii.gz : Volume with ROI labels. This is actually the same volume as the aparc+aseg.mgz output from recon-all, except it is converted to Nifti format.</li>
+<li>orig.nii.gz : A copy of the subject&#8217;s preprocessed structural scan. The same volume as orig.mgz from recon-all, except converted to Nifti.</li>
+<li>suvr_data.csv : The first column lists region names and the second column is the average SUVr from each region.</li>
+</ul>
+</div>
+<div class="section" id="pngs">
+<h2>pngs<a class="headerlink" href="#pngs" title="Permalink to this headline">¶</a></h2>
+<p>This folder contains 256 .png files. They are snapshots of coronal slices of the coregistered PET volume (vols/PET_coreg.nii.gz) overlaid oto the subjects structural volume (stats/orig.mgz)</p>
+</div>
 </div>
 
 

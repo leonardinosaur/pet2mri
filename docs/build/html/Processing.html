@@ -164,10 +164,11 @@
             
   <div class="section" id="processing">
 <span id="id1"></span><h1>Processing<a class="headerlink" href="#processing" title="Permalink to this headline">¶</a></h1>
+<p>This page contains additional information regarding pet2mri processing.</p>
 <div class="section" id="subject">
 <h2>Subject<a class="headerlink" href="#subject" title="Permalink to this headline">¶</a></h2>
 <p>Before a PET image can be processed with pet2mri, the subject must have an anatomical (e.g. 3D-T1) volume that has been
-processing with FreeSurfer&#8217;s &#8216;recon-all&#8217; processing stream</p>
+processing with FreeSurfer&#8217;s &#8216;recon-all&#8217; processing stream.</p>
 </div>
 <div class="section" id="input">
 <h2>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h2>
@@ -180,7 +181,7 @@ processing with FreeSurfer&#8217;s &#8216;recon-all&#8217; processing stream</p>
 - Normalized mutual information registration (mi)</p>
 <p>Boundary-based registration uses the FreeSurfer bbregister command under the hood. In brief, it maximizes the gradient
 across the grey white matter interface. Normalized mutual information registration performs similarly to spm_coreg in Matlab.</p>
-<p>If using boundary-based registration, the contrast must also be specified with the -c/&#8211;contrast flag. Possible values
+<p>If using boundary-based registration, the contrast must also be specified with the -c/<code class="docutils literal"><span class="pre">--contrast</span></code> flag. Possible values
 are &#8216;t1&#8217;, &#8216;t2&#8217;, and &#8216;bold&#8217;. If you are unsure about the constrast, you can instead try to specify the radiotracer with
 the -t/&#8211;tracer flag. pet2mri will try to infer the contrast from the radiotracer.</p>
 </div>
