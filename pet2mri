@@ -4,7 +4,6 @@
 
 USAGE: python pet2mri.py
 
-  
 	Required Arguments:
 
 		-i/--input : Input pet volume
@@ -52,31 +51,30 @@ parser.add_argument('-i', '--input', help = 'Input PET volume - Nifi or MGH form
 parser.add_argument('-s', '--subject', help = 'Subjects FreeSurfer directory')
 parser.add_argument('-r', '--regtype', help = 'Registration cost function - mi (normalized MI) or bb (boundary-based cost)')
 
-# One of these will be required for bb registration
-parser.add_argument('-c', '--contrast', help = 'Contrast')
-parser.add_argument('-t', '--tracer', help = 'PET radiotracer')
+# Contrast options for bbregister
+parser.add_argument('-c', '--contrast', help = 'Contrast; If none is supplied, will assume t1')
 
-# Dont think any other optinons are requied for mri_coreg
-parser.add_argument('-p', '--png', help = 'Output screenshots of coregistered PET volume overlaid on MRI')
-
-# This is optional
-parser.add_argument('-ro', '--regopts', help = 'Text-file with registration options')
 
 # Different reference options
 parser.add_argument('-rf', '--refmask', help = 'Specify mask of reference region')
 parser.add_argument('-fl', '--reflabel', help = 'Specify labels of reference region')
 
-# Not yet implemented
-
+## Everything below is not yet implemented
+parser.add_argument('-nop', '--nopng', help = 'Output screenshots of coregistered PET volume overlaid on MRI')
+parser.add_argument('-m', '--mni152', help = 'Register anatomical and PET volume to MRI')
 parser.add_argument('-v', '--visqc', help = 'Visual QC')
 parser.add_argument('-ir', '--inputreg', help = 'Input registration file (e.g. regfile.dat)')
+parser.add_argument('-t', '--tracer', help = 'PET radiotracer')
+
+
+# Registration options
+parser.add_argument('-ro', '--regopts', help = 'Text-file with registration options')
 
 
 
 args = parser.parse_args()
 
-# Check input existence
-
+# Check complete flags
 if not args.input:
 	sys.exit('Error: No input volume provided')
 if not args.subject:
@@ -84,16 +82,21 @@ if not args.subject:
 if not args.regtype:
 	sys.exit('Error: No registration type specified')
 
+# Check if inputs exist
 if not os.path.exists(args.input):
 	sys.exit('Error: Input volume %s does not exist' % (args.input))
-
 sdir = subj_dir + args.subject
 if not os.path.exists(sdir):
 	sys.exit('Error: Subject %s not found in $SUBJECTS_DIR %s' % (args.subject, subj_dir))
 
+
 # Check registration type
+if args.regtype == 'mi':
+	sys.exit('Error: Normalized mutual information based coregistration not yet implemented')
+
 if args.regtype != 'bb' and args.regtype != 'mi':
 	sys.exit('Error: Registration type %s not recognized' % (args.regtype))
+
 
 # Make a PET directory
 petdir = sdir + '/pet/'
@@ -110,41 +113,51 @@ while os.path.exists(currdir):
 cmd = 'mkdir -p %s' % currdir
 os.system(cmd)
 
-# Copy the input PET volume to the currdir
+# Copy the volume directory
 voldir = currdir + '/vols/'
 cmd = 'mkdir -p %s' % voldir
 os.system(cmd)
 
-prereg_vol = voldir + '/PET_prereg.nii.gz'
-shutil.copy(args.input, prereg_vol)
+# Copy the input volume into the volume directory
+if args.input.endswith('.nii.gz'):
+	prereg_vol = voldir + '/PET_prereg.nii.gz'
+	shutil.copy(args.input, prereg_vol)
+else:
+	cmd = 'mri_convert %s %s' % (args.input, prereg_vol)
+	os.system(cmd)
 
 
+## Register PET to MRI
 
-
-# Register PET to MRI
-
-# Create register file
+# Create registration directory file
 regdir = currdir + '/regfiles/'
 cmd = 'mkdir -p %s' % regdir
 os.system(cmd)
 
 regfile = regdir + '/regfile.dat'
 
+# bbregister
 if args.regtype == 'bb':
 	if args.contrast:
 		cmd = 'bbregister --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
 		os.system(cmd)
+	else:
+		cmd = 'bbregister --s %s --mov %s --reg %s --t1'  % (args.subject, prereg_vol, regfile)
+		os.system(cmd)
 
+# mri_coreg
 else:
 	cmd = 'mri_coreg --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
 	os.system(cmd)
 
-# Apply registration file
+
+# Apply registration to input pet volume
 coreg_vol = voldir + '/PET_coreg.mgz'
 cmd = 'mri_vol2vol --mov %s --targ %s/mri/orig.mgz --reg %s --o %s' % (prereg_vol, sdir, regfile, coreg_vol)
 os.system(cmd)
 
-# Convert output to Nifti
+# Convert output to Nifti ~ maybe we can just make
+# the output of mri_vol2vol, nifti
 cmd = 'mri_convert %s %s' % (coreg_vol, coreg_vol.replace('.mgz', '.nii.gz'))
 os.system(cmd)
 
@@ -161,12 +174,6 @@ targ_aseg = stat_dir + '/aseg.nii.gz'
 cmd = 'mri_convert %s %s' % (src_aseg, targ_aseg)
 os.system(cmd)
 
-src_orig = sdir + '/mri/orig.mgz'
-targ_orig = stat_dir + '/orig.nii.gz'
-cmd = 'mri_convert %s %s ' % (src_orig, targ_orig)
-os.system(cmd)
-
-# Read recon-all stats for volumes (future)
 
 
 # Load aseg and pet data
@@ -194,23 +201,33 @@ label_df.to_csv(outname, index=False)
 
 
 # Make PNG dir
-if args.png:
-	jpg_dir = currdir + '/pngs/'
-	os.system('mkdir -p %s' % jpg_dir)
-	orig_data = ni.load(targ_orig).get_data()
-	oshape = orig_data.shape
-	pshape = pet_data.shape
+jpg_dir = currdir + '/pngs/'
+os.system('mkdir -p %s' % jpg_dir)
 
-	print 'Orig Shape: ', oshape
-	print 'PET Shape: ', pshape
+src_orig = sdir + '/mri/orig.mgz'
+targ_orig = jpg_dir + '/orig.nii.gz'
+cmd = 'mri_convert %s %s ' % (src_orig, targ_orig)
+os.system(cmd)
 
-	for sl in range(oshape[1]):
-		plt.figure(figsize = (10, 8))
-		plt.imshow(orig_data[:, :, sl].transpose())
-		plt.imshow(pet_data[:, :, sl].transpose(), cmap = 'hot', alpha = 0.5)
-		plt.savefig(jpg_dir + 'image%03d'%sl  + '.png', bbox_inches='tight', pad_inches=0.0)
-		plt.clf()
 
+orig_data = ni.load(targ_orig).get_data()
+oshape = orig_data.shape
+pshape = pet_data.shape
+
+
+print 'Orig Shape: ', oshape
+print 'PET Shape: ', pshape
+
+# We should make this always the same orientation
+for sl in range(oshape[1]):
+	plt.figure(figsize = (10, 8))
+	plt.imshow(orig_data[:, :, sl].transpose())
+	plt.imshow(pet_data[:, :, sl].transpose(), cmap = 'hot', alpha = 0.5)
+	plt.savefig(jpg_dir + 'image%03d'%sl  + '.png', bbox_inches='tight', pad_inches=0.0)
+	plt.clf()
+
+
+## Everything below is not yet implemented
 # Compute registration of structural to MNI
 cmd = 'mni152reg --s %s' % args.subject
 
