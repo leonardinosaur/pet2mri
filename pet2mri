@@ -15,25 +15,33 @@ USAGE: python pet2mri.py
 		-t/--tracer : Radiotracter name; Required if REGTYPE is bb and CONTRAST is not specified
 
 
+To-do:
+-Save SUVr image [x]
+-Is pandas slow for reading and writing?
+-Refmask specification []
+-Regfile specification []
+-Reflabel specification []
+-Reg options specification []
+
+-Surface based analysis[]
+	-Note: This one might be difficult because for some reason, the surface related commands
+	can't be called through Python
+
 """
 
+
+# Load imports
 import warnings
-warnings.filterwarnings("ignore")
-
-
 import os, sys
 import shutil
-from glob import glob
 import argparse
-import random
-
 import pandas as pd
 import numpy as np
 import nibabel as ni
 import matplotlib.pyplot as plt
-
 from datetime import datetime
 
+warnings.filterwarnings("ignore")
 
 
 subj_dir = os.environ['SUBJECTS_DIR']
@@ -44,7 +52,7 @@ if not subj_dir.endswith('/'):
 
 start = str(datetime.now())
 
-parser = argparse.ArgumentParser(description=__doc__)
+parser = argparse.ArgumentParser()
 
 # Get inputs
 parser.add_argument('-i', '--input', help = 'Input PET volume - Nifi or MGH format')
@@ -57,12 +65,11 @@ parser.add_argument('-c', '--contrast', help = 'Contrast; If none is supplied, w
 
 # Different reference options
 parser.add_argument('-rf', '--refmask', help = 'Specify mask of reference region')
-parser.add_argument('-fl', '--reflabel', help = 'Specify labels of reference region')
+parser.add_argument('-rl', '--reflabel', help = 'Specify label(s) of reference region')
 
 ## Everything below is not yet implemented
 parser.add_argument('-nop', '--nopng', help = 'Output screenshots of coregistered PET volume overlaid on MRI')
 parser.add_argument('-m', '--mni152', help = 'Register anatomical and PET volume to MRI')
-parser.add_argument('-v', '--visqc', help = 'Visual QC')
 parser.add_argument('-ir', '--inputreg', help = 'Input registration file (e.g. regfile.dat)')
 parser.add_argument('-t', '--tracer', help = 'PET radiotracer')
 
@@ -74,7 +81,7 @@ parser.add_argument('-ro', '--regopts', help = 'Text-file with registration opti
 
 args = parser.parse_args()
 
-# Check complete flags
+# Check minimum flags inputted
 if not args.input:
 	sys.exit('Error: No input volume provided')
 if not args.subject:
@@ -98,7 +105,7 @@ if args.regtype != 'bb' and args.regtype != 'mi':
 	sys.exit('Error: Registration type %s not recognized' % (args.regtype))
 
 
-# Make a PET directory
+# Make a PET directory in the subject's FS directory
 petdir = sdir + '/pet/'
 if not os.path.exists(petdir):
 	cmd = 'mkdir -p %s' % petdir
@@ -118,6 +125,10 @@ voldir = currdir + '/vols/'
 cmd = 'mkdir -p %s' % voldir
 os.system(cmd)
 
+# Get record of input file name
+with open(voldir + 'input_vol.txt', 'w') as w:
+	w.write(args.input + '\n')
+
 # Copy the input volume into the volume directory
 if args.input.endswith('.nii.gz'):
 	prereg_vol = voldir + '/PET_prereg.nii.gz'
@@ -136,18 +147,17 @@ os.system(cmd)
 
 regfile = regdir + '/regfile.dat'
 
-# bbregister
+# boundary-based registration
 if args.regtype == 'bb':
 	if args.contrast:
 		cmd = 'bbregister --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
-		os.system(cmd)
 	else:
 		cmd = 'bbregister --s %s --mov %s --reg %s --t1'  % (args.subject, prereg_vol, regfile)
-		os.system(cmd)
+	os.system(cmd)
 
-# mri_coreg
+# normalized mutual information based registration
 else:
-	cmd = 'mri_coreg --s %s --mov %s --reg %s --%s'  % (args.subject, prereg_vol, regfile, args.contrast)
+	cmd = 'mri_coreg --s %s --mov %s --reg %s'  % (args.subject, prereg_vol, regfile)
 	os.system(cmd)
 
 
@@ -157,18 +167,19 @@ cmd = 'mri_vol2vol --mov %s --targ %s/mri/orig.mgz --reg %s --o %s' % (prereg_vo
 os.system(cmd)
 
 # Convert output to Nifti ~ maybe we can just make
-# the output of mri_vol2vol, nifti
+# the output of mri_vol2vol, nifti format
 cmd = 'mri_convert %s %s' % (coreg_vol, coreg_vol.replace('.mgz', '.nii.gz'))
 os.system(cmd)
 
-# Calculate SUVrs
+
+# Generate PET stats
 
 # make stats directory
 stat_dir = currdir + '/stats/'
 cmd = 'mkdir -p %s' % stat_dir
 os.system(cmd)
 
-# copy mri and aseg to PET folder in nifti format
+# copy mri stats folder in nifti format
 src_aseg = sdir + '/mri/aparc+aseg.mgz'
 targ_aseg = stat_dir + '/aseg.nii.gz'
 cmd = 'mri_convert %s %s' % (src_aseg, targ_aseg)
@@ -177,21 +188,37 @@ os.system(cmd)
 
 
 # Load aseg and pet data
-aseg_data, pet_data = ni.load(targ_aseg).get_data(), ni.load(coreg_vol.replace('.mgz', '.nii.gz')).get_data()
+aseg_data, pet_data = ni.load(targ_aseg).get_data()
 labels = set(aseg_data.flatten())
-
-# Get mean uptake from reference
 label_df = pd.read_csv('fs_gm.csv', header=None)
 label_df.columns = ['Region', 'Label']
 
-lmu, rmu = np.mean(pet_data[np.where(aseg_data == 8)]), np.mean(pet_data[np.where(aseg_data == 47)])
-ref_val = 0.5 * (lmu + rmu)
+pet_img = ni.load(coreg_vol.replace('.mgz', '.nii.gz'))
+pet_data, pet_aff = pet_img.get_data(), pet_img.affine
+
+# Get mean uptake from reference
+
+# This was wrong
+# lmu, rmu = np.mean(pet_data[np.where(aseg_data == 8)]), np.mean(pet_data[np.where(aseg_data == 47)])
+# ref_val = 0.5 * (lmu + rmu)
+
+ref_mask = np.zeros(pet_data.shape)
+ref_mask[np.where(aseg_data == 8)] = 1
+ref_mask[np.where(aseg_data == 47)] = 1
+ref_val = np.mean(pet_data[np.where(ref_mask == 1)])
 
 
-mus, stds, vols = [], [], []
+# Generate and save SUVr image
+suvr_data = pet_data / ref_val
+suvr_name = voldir + '/PET_suvr.nii.gz'
+suvr_img = ni.Nifti1Image(suvr_data, pet_aff)
+ni.save(suvr_img, suvr_name)
+
+
+mus, stds = [], []
 for ind in range(len(label_df)):
 	roi, label = label_df.Region.values[ind], label_df.Label.values[ind]
-	mus.append(np.mean(pet_data[np.where(aseg_data == label)])/ref_val)
+	mus.append(np.mean(suvr_data[np.where(aseg_data == label)]))
 	# stds.append(np.std(pet_data[np.where(aseg_data == label)])/ref_val)
 label_df['SUVr_mean'] = mus
 
@@ -208,7 +235,6 @@ src_orig = sdir + '/mri/orig.mgz'
 targ_orig = jpg_dir + '/orig.nii.gz'
 cmd = 'mri_convert %s %s ' % (src_orig, targ_orig)
 os.system(cmd)
-
 
 orig_data = ni.load(targ_orig).get_data()
 oshape = orig_data.shape
@@ -227,14 +253,17 @@ for sl in range(oshape[1]):
 	plt.clf()
 
 
-## Everything below is not yet implemented
-# Compute registration of structural to MNI
-cmd = 'mni152reg --s %s' % args.subject
-
-# Apply registration to structural and to PET
-
-
 
 print 'Completed processing PET volume'
 print 'Started at: ', start
 print 'Finished at: ', str(datetime.now())
+
+
+
+
+## Everything below is not yet implemented
+
+# Compute registration of structural to MNI
+cmd = 'mni152reg --s %s' % args.subject
+# Apply registration to structural and to PET
+
