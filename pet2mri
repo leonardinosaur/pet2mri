@@ -22,7 +22,7 @@ To-do:
 -Regfile specification []
 -Reflabel specification []
 -Reg options specification []
-
+-Check surface and aseg existence []
 -Surface based analysis[]
 	-Note: This one might be difficult because for some reason, the surface related commands
 	can't be called through Python
@@ -37,15 +37,18 @@ import shutil
 import argparse
 import pandas as pd
 import numpy as np
-import nibabel as ni
 import matplotlib.pyplot as plt
 from datetime import datetime
 
 warnings.filterwarnings("ignore")
 
+with warnings.catch_warnings():
+	import nibabel as ni
 
 subj_dir = os.environ['SUBJECTS_DIR']
+
 print 'SUBJECTS_DIR is : ', subj_dir
+
 if not subj_dir.endswith('/'):
 	subj_dir += '/'
 
@@ -96,6 +99,8 @@ sdir = subj_dir + args.subject
 if not os.path.exists(sdir):
 	sys.exit('Error: Subject %s not found in $SUBJECTS_DIR %s' % (args.subject, subj_dir))
 
+print 'INPUT is : ', args.input
+print 'SUBJECT is : ', args.subject
 
 # Check registration type
 if args.regtype == 'mi':
@@ -181,14 +186,19 @@ os.system(cmd)
 
 # copy mri stats folder in nifti format
 src_aseg = sdir + '/mri/aparc+aseg.mgz'
-targ_aseg = stat_dir + '/aseg.nii.gz'
+targ_aseg = stat_dir + '/aparc+aseg.nii.gz'
+
+# Check existence 
 cmd = 'mri_convert %s %s' % (src_aseg, targ_aseg)
+os.system(cmd)
+
+cmd = 'mri_convert %s %s' % (src_aseg.replace('aparc+', ''), targ_aseg.replace('aparc+', ''))
 os.system(cmd)
 
 
 
 # Load aseg and pet data
-aseg_data, pet_data = ni.load(targ_aseg).get_data()
+aseg_data = ni.load(targ_aseg).get_data()
 labels = set(aseg_data.flatten())
 label_df = pd.read_csv('fs_gm.csv', header=None)
 label_df.columns = ['Region', 'Label']
