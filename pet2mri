@@ -18,7 +18,7 @@ USAGE: python pet2mri.py
 To-do:
 -Save SUVr image [x]
 -Is pandas slow for reading and writing?
--Refmask specification []
+-Refmask specification [x]
 -Regfile specification []
 -Reflabel specification []
 -Reg options specification []
@@ -213,8 +213,32 @@ pet_data, pet_aff = pet_img.get_data(), pet_img.affine
 # ref_val = 0.5 * (lmu + rmu)
 
 ref_mask = np.zeros(pet_data.shape)
-ref_mask[np.where(aseg_data == 8)] = 1
-ref_mask[np.where(aseg_data == 47)] = 1
+
+# Inputted ref mask
+if args.refmask:
+	if args.refmask.endswith('.mgz'):
+		cmd = 'mri_convert %s %s' % (args.refmask, stat_dir + 'ref_mask.nii.gz')
+		os.system(cmd)
+	elif args.refmask.endswith('.mgh'):
+		cmd = 'mri_convert %s %s' % (args.refmask, stat_dir + 'ref_mask.nii.gz')
+		os.system(cmd)
+	elif args.refmask.endswith('.nii'):
+		cmd = 'mri_convert %s %s' % (args.refmask, stat_dir + 'ref_mask.nii.gz')
+		os.system(cmd)
+	else:
+		irname = args.refmask
+	
+
+	ir_data = ni.load(irname).get_data()
+	ref_mask[np.where(ir_data != 0)] = 1
+
+# Cerebellar grey matter
+else:
+	ref_mask[np.where(aseg_data == 8)] = 1
+	ref_mask[np.where(aseg_data == 47)] = 1
+
+
+
 ref_val = np.mean(pet_data[np.where(ref_mask == 1)])
 
 

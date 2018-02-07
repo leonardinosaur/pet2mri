@@ -3,18 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pet2mri_proj's documentation!
-========================================
+pet2mri documentation
+======================
+Both the pet2mri scripts and this documentation are under construction.
+
+Contents:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+   About
+   Usage
+   Processing
+   Outputs
 
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

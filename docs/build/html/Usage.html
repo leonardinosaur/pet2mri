@@ -32,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="pet2mri_proj 1.0 documentation" href="index.html"/>
         <link rel="next" title="Processing" href="Processing.html"/>
         <link rel="prev" title="About" href="About.html"/> 
@@ -147,7 +150,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/Usage.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/Usage.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -178,7 +181,7 @@ the following command:</p>
 that has been processing with FreeSurfer&#8217;s recon-all stream. One all structural MRIs have been processed,
 you can proceed with processing your PET images.</p>
 <p>A typical command will look something like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pet2mri</span> <span class="o">-</span><span class="n">i</span> <span class="n">PET_SUB0024_20160116</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">-</span><span class="n">s</span> <span class="n">SUB0024</span> <span class="o">-</span><span class="n">r</span> <span class="n">bb</span> <span class="o">-</span><span class="n">c</span> <span class="n">t1</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pet2mri</span> <span class="o">-</span><span class="n">i</span> <span class="n">PET_SUB0024_20160116</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">-</span><span class="n">s</span> <span class="n">SUB0024</span> <span class="o">-</span><span class="n">r</span> <span class="n">bb</span>
 </pre></div>
 </div>
 <p>This will register the input Nifti volume (PET_SUB0024_20160116.nii.gz) to the structural scan of subject SUB0024.
@@ -255,7 +258,7 @@ packaged with all of its dependencies. For now, you must download these seperate
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: ''
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

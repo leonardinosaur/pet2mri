@@ -32,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="pet2mri_proj 1.0 documentation" href="index.html"/>
         <link rel="next" title="Usage" href="Usage.html"/>
         <link rel="prev" title="pet2mri documentation" href="index.html"/> 
@@ -142,7 +145,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/About.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/About.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -157,12 +160,13 @@
             
   <div class="section" id="about">
 <span id="id1"></span><h1>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h1>
-<p>pet2mri is a suite of tools for processing and quantification of PET data. It is essentially a collection
-of Python scripts that act as wrappers for FreeSurfer and SPM commands.</p>
+<p>pet2mri is a tool for processing and quantification of PET data. It is essentially a Python
+script that acts as a wrapper for various FreeSurfer commands.</p>
 <p>The script performs the following steps:</p>
 <ol class="arabic simple">
 <li>Computes registration between input PET volume and a subject&#8217;s MRI.</li>
 <li>Applies registration to input PET volume and saves result</li>
+<li>Generates and saves SUVr image</li>
 <li>Calculates regional SUVr values</li>
 <li>Generates screenshots of PET overlaid onto MRI.</li>
 </ol>
@@ -216,7 +220,7 @@ of Python scripts that act as wrappers for FreeSurfer and SPM commands.</p>
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: ''
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

@@ -32,6 +32,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="pet2mri_proj 1.0 documentation" href="index.html"/>
         <link rel="next" title="Outputs" href="Outputs.html"/>
         <link rel="prev" title="Usage" href="Usage.html"/> 
@@ -91,11 +94,11 @@
 <li class="toctree-l1"><a class="reference internal" href="About.html">About</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Processing</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#subject">Subject</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#input">Input</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#registration">Registration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#quantification">Quantification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#screenshots">Screenshots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Outputs.html">Outputs</a></li>
@@ -149,7 +152,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/Processing.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/Processing.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -165,35 +168,44 @@
   <div class="section" id="processing">
 <span id="id1"></span><h1>Processing<a class="headerlink" href="#processing" title="Permalink to this headline">¶</a></h1>
 <p>This page contains additional information regarding pet2mri processing.</p>
-<div class="section" id="subject">
-<h2>Subject<a class="headerlink" href="#subject" title="Permalink to this headline">¶</a></h2>
-<p>Before a PET image can be processed with pet2mri, the subject must have an anatomical (e.g. 3D-T1) volume that has been
-processing with FreeSurfer&#8217;s &#8216;recon-all&#8217; processing stream.</p>
-</div>
 <div class="section" id="input">
 <h2>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h2>
-<p>The input PET image must be a 3D volume in Nifti or MGH format. Support for DICOM and raw dynamic scans coming soon.</p>
+<p>Before a PET image can be processed with pet2mri, the subject must have an anatomical (e.g. 3D-T1) volume that has been
+processing with FreeSurfer&#8217;s &#8216;recon-all&#8217; processing stream., The input PET image must be a 3D volume in Nifti or MGH format. Support for DICOM and raw dynamic scans is coming soon.</p>
 </div>
 <div class="section" id="registration">
 <h2>Registration<a class="headerlink" href="#registration" title="Permalink to this headline">¶</a></h2>
-<p>The registration type is specified by the -r/&#8211;regtype flag and is required. Two types of registration procedures are supported by pet2mri:
-- Boundary-based registration (bb)
-- Normalized mutual information registration (mi)</p>
+<p>The registration type is specified by the -r flag and is required. Two types of registration procedures are supported by pet2mri:</p>
+<ul class="simple">
+<li>Boundary-based registration (bb)</li>
+<li>Normalized mutual information registration (mi)</li>
+</ul>
 <p>Boundary-based registration uses the FreeSurfer bbregister command under the hood. In brief, it maximizes the gradient
 across the grey white matter interface. Normalized mutual information registration performs similarly to spm_coreg in Matlab.</p>
-<p>If using boundary-based registration, the contrast must also be specified with the -c/<code class="docutils literal"><span class="pre">--contrast</span></code> flag. Possible values
-are &#8216;t1&#8217;, &#8216;t2&#8217;, and &#8216;bold&#8217;. If you are unsure about the constrast, you can instead try to specify the radiotracer with
-the -t/&#8211;tracer flag. pet2mri will try to infer the contrast from the radiotracer.</p>
+<p>For boundary-based registration, the contrast can be specified with the -c flag. Possible values
+are &#8216;t1&#8217;, &#8216;t2&#8217;, and &#8216;bold&#8217;. If a contrast is not supplied, then &#8216;t1&#8217; will be assumed for the registration.</p>
+<p>If you have already generated a registration file (e.g. regfile.dat), you can tell pet2mri to use your registration
+file instead of computing a registration from scratch. This can be specified with the -rd flag.</p>
 </div>
 <div class="section" id="quantification">
 <h2>Quantification<a class="headerlink" href="#quantification" title="Permalink to this headline">¶</a></h2>
-<p>By default, regional SUVr values are calculated for all grey matter regions from the Desikan-Killiany atlas and saved to a text file.
-These values are calculated as follows. First the coregistered PET volume is normazled by dividing each voxel value by the mean
-uptake in the cerebellar grey matter to generate an SUVr volume. Then regional SUVr values are calculated by taking the average SUVr
-within each region.</p>
+<p>After registering the PET volume to the structural image, an SUVr volume is generated by dividing each
+voxel value by the mean uptake in the cerebellar grey matter. Additionally, regional SUVr values are calculated
+by averaging SUVr values over each grey matter region from the Desikan-Killiany atlas. These regional values are
+saved to a text file (see Outputs section).</p>
+<p>If you are interested in using a different reference region, you have the option of passing a mask for your
+desired reference region. This can be specified with the -rf flag.</p>
 </div>
 <div class="section" id="screenshots">
 <h2>Screenshots<a class="headerlink" href="#screenshots" title="Permalink to this headline">¶</a></h2>
+<p>Screen shots of the coregistered PET overlaid on the structural image are generated (primarily for quality control
+purposes). This is done by loading the coregistered PET volume (not SUVr volume) with nibabel and generated slices with
+matplotlib.</p>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>Thus far, pet2mri has been tested on preprocessed images from the Alzheimer&#8217;s Disease Neuroimaging Initiative. I&#8217;ve now
+used pet2mri on around 100 florbetapir and flortaucipir scans, mostly using boundary-based registration.</p>
 </div>
 </div>
 
@@ -245,7 +257,7 @@ within each region.</p>
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: ''
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
