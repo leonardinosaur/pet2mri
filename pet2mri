@@ -24,8 +24,7 @@ To-do:
 -Reg options specification []
 -Check surface and aseg existence []
 -Surface based analysis[]
-	-Note: This one might be difficult because for some reason, the surface related commands
-	can't be called through Python
+
 
 """
 
@@ -75,6 +74,9 @@ parser.add_argument('-nop', '--nopng', help = 'Output screenshots of coregistere
 parser.add_argument('-m', '--mni152', help = 'Register anatomical and PET volume to MRI')
 parser.add_argument('-ir', '--inputreg', help = 'Input registration file (e.g. regfile.dat)')
 parser.add_argument('-t', '--tracer', help = 'PET radiotracer')
+
+parser.add_argument('-a', '--all', help = 'Run all processing steps')
+
 
 
 # Registration options
@@ -177,7 +179,7 @@ cmd = 'mri_convert %s %s' % (coreg_vol, coreg_vol.replace('.mgz', '.nii.gz'))
 os.system(cmd)
 
 
-# Generate PET stats
+## Generate PET stats
 
 # make stats directory
 stat_dir = currdir + '/stats/'
@@ -261,6 +263,8 @@ outname = stat_dir + 'suvr_data.csv'
 label_df.to_csv(outname, index=False)
 
 
+### Screenshots
+
 # Make PNG dir
 jpg_dir = currdir + '/pngs/'
 os.system('mkdir -p %s' % jpg_dir)
@@ -297,7 +301,39 @@ print 'Finished at: ', str(datetime.now())
 
 ## Everything below is not yet implemented
 
-# Compute registration of structural to MNI
+## MNI Space
+# Compute registration of structural to MNI152 space
 cmd = 'mni152reg --s %s' % args.subject
+
 # Apply registration to structural and to PET
+
+cmd = 'mri_vol2vol '
+
+
+## Surface based analysis
+# Register volume to surface - sample half way
+import subprocess
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
