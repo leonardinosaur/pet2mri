@@ -167,9 +167,8 @@
 <span id="id1"></span><h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>At some point, pet2mri will be avaliable on pip, but as of this writing this is not yet the case. To get
-pet2mri, please download the script from the GitHub <a class="reference external" href="https://github.com/leonardinosaur/pet2mri">repo</a>.
-After downloading the script, place it in a directory in your path. Finally, make it executable with
+<p>Currently, the easiest way to get pet2mri is from the GitHub <a class="reference external" href="https://github.com/leonardinosaur/pet2mri">repo</a>.
+After downloading the script, place it in a directory in your path. Then, make it executable with
 the following command:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chmod</span> <span class="o">+</span><span class="n">x</span> <span class="n">pet2mri</span>
 </pre></div>
@@ -178,7 +177,7 @@ the following command:</p>
 <div class="section" id="basic-example">
 <h2>Basic Example<a class="headerlink" href="#basic-example" title="Permalink to this headline">¶</a></h2>
 <p>Before pet2mri can be used each subject with a PET scan must have a corresponding structural MRI scan
-that has been processing with FreeSurfer&#8217;s recon-all stream. One all structural MRIs have been processed,
+that has been processing with FreeSurfer&#8217;s recon-all stream. Once all structural MRIs have been processed,
 you can proceed with processing your PET images.</p>
 <p>A typical command will look something like this:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pet2mri</span> <span class="o">-</span><span class="n">i</span> <span class="n">PET_SUB0024_20160116</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">-</span><span class="n">s</span> <span class="n">SUB0024</span> <span class="o">-</span><span class="n">r</span> <span class="n">bb</span>
@@ -199,7 +198,7 @@ of these options can be viewed with the -h (or &#8211;help) flag:</p>
 </div>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>pet2mri depends on several mmodules and tools. Once pet2mri is available on pip, it will hopefully be
+<p>pet2mri depends on several mmodules and tools. Hopefully, it will at some point be
 packaged with all of its dependencies. For now, you must download these seperately before using pet2mri:</p>
 <ul class="simple">
 <li>Python 2.7 : We plan on adding compatibility for Python 3 in version 2.0 of pet2mri.</li>

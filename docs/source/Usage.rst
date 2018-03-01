@@ -7,9 +7,8 @@ Usage
 
 Installation
 ============
-At some point, pet2mri will be avaliable on pip, but as of this writing this is not yet the case. To get
-pet2mri, please download the script from the GitHub repo_.
-After downloading the script, place it in a directory in your path. Finally, make it executable with
+Currently, the easiest way to get pet2mri is from the GitHub repo_.
+After downloading the script, place it in a directory in your path. Then, make it executable with
 the following command::
 
 	chmod +x pet2mri
@@ -17,7 +16,7 @@ the following command::
 Basic Example
 =============
 Before pet2mri can be used each subject with a PET scan must have a corresponding structural MRI scan
-that has been processing with FreeSurfer's recon-all stream. One all structural MRIs have been processed,
+that has been processing with FreeSurfer's recon-all stream. Once all structural MRIs have been processed,
 you can proceed with processing your PET images.
 
 A typical command will look something like this::
@@ -38,7 +37,7 @@ of these options can be viewed with the -h (or --help) flag::
 
 Requirements
 ============
-pet2mri depends on several mmodules and tools. Once pet2mri is available on pip, it will hopefully be
+pet2mri depends on several mmodules and tools. Hopefully, it will at some point be
 packaged with all of its dependencies. For now, you must download these seperately before using pet2mri:
 
 - Python 2.7 : We plan on adding compatibility for Python 3 in version 2.0 of pet2mri.
