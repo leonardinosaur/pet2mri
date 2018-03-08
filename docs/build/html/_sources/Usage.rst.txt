@@ -23,7 +23,7 @@ A typical command will look something like this::
 
 	pet2mri -i PET_SUB0024_20160116.nii.gz -s SUB0024 -r bb
 
-This will register the input Nifti volume (PET_SUB0024_20160116.nii.gz) to the structural scan of subject SUB0024.
+This will register the input Nifti volume (PET_SUB0024_20160116.nii.gz) to the structural scan of subject SUB0024
 using boundary-based registration (see Processing section). As a reminder: before subject SUB0024 can be used with
 pet2mri, it must have a structural scan that has been processed with recon-all and the output from that procedure
 must be in $SUBJECTS_DIR. The results from pet2mri processing will be stored in::
@@ -37,14 +37,14 @@ of these options can be viewed with the -h (or --help) flag::
 
 Requirements
 ============
-pet2mri depends on several mmodules and tools. Hopefully, it will at some point be
+pet2mri depends on several modules and tools. Hopefully, it will at some point be
 packaged with all of its dependencies. For now, you must download these seperately before using pet2mri:
 
-- Python 2.7 : We plan on adding compatibility for Python 3 in version 2.0 of pet2mri.
+- Python 2.7 : We plan on adding compatibility for Python 3 in a later version of pet2mri.
 - FreeSurfer : This is readilly available at here_.
 - Python packages : Pandas, NumPy, Matplotlib, and Nibabel.
 
-To get the required packages, we recommend Anaconda_.
+To get the required Python packages, we recommend starting with Anaconda_.
 
 .. _repo: https://github.com/leonardinosaur/pet2mri
 .. _here: https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall

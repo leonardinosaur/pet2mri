@@ -9,7 +9,7 @@ This page contains additional information regarding pet2mri processing.
 Input
 =====
 Before a PET image can be processed with pet2mri, the subject must have an anatomical (e.g. 3D-T1) volume that has been
-processing with FreeSurfer's 'recon-all' processing stream., The input PET image must be a 3D volume in Nifti or MGH format. Support for DICOM and raw dynamic scans is coming soon.
+processed with FreeSurfer's 'recon-all' stream. The input PET image must be a 3D volume in Nifti or MGH format. Support for DICOM and raw dynamic scans is coming soon.
 
 Registration
 ============
@@ -40,8 +40,8 @@ desired reference region. This can be specified with the -rf flag.
 Screenshots
 ===========
 Screen shots of the coregistered PET overlaid on the structural image are generated (primarily for quality control
-purposes). This is done by loading the coregistered PET volume (not SUVr volume) with nibabel and generated slices with
-matplotlib.
+purposes). This is done by loading the coregistered PET volume (not SUVr volume) and structural volume with nibabel
+and generating slices with matplotlib.
 
 Testing
 ========

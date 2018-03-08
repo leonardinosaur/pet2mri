@@ -183,7 +183,7 @@ you can proceed with processing your PET images.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pet2mri</span> <span class="o">-</span><span class="n">i</span> <span class="n">PET_SUB0024_20160116</span><span class="o">.</span><span class="n">nii</span><span class="o">.</span><span class="n">gz</span> <span class="o">-</span><span class="n">s</span> <span class="n">SUB0024</span> <span class="o">-</span><span class="n">r</span> <span class="n">bb</span>
 </pre></div>
 </div>
-<p>This will register the input Nifti volume (PET_SUB0024_20160116.nii.gz) to the structural scan of subject SUB0024.
+<p>This will register the input Nifti volume (PET_SUB0024_20160116.nii.gz) to the structural scan of subject SUB0024
 using boundary-based registration (see Processing section). As a reminder: before subject SUB0024 can be used with
 pet2mri, it must have a structural scan that has been processed with recon-all and the output from that procedure
 must be in $SUBJECTS_DIR. The results from pet2mri processing will be stored in:</p>
@@ -198,14 +198,14 @@ of these options can be viewed with the -h (or &#8211;help) flag:</p>
 </div>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>pet2mri depends on several mmodules and tools. Hopefully, it will at some point be
+<p>pet2mri depends on several modules and tools. Hopefully, it will at some point be
 packaged with all of its dependencies. For now, you must download these seperately before using pet2mri:</p>
 <ul class="simple">
-<li>Python 2.7 : We plan on adding compatibility for Python 3 in version 2.0 of pet2mri.</li>
+<li>Python 2.7 : We plan on adding compatibility for Python 3 in a later version of pet2mri.</li>
 <li>FreeSurfer : This is readilly available at <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall">here</a>.</li>
 <li>Python packages : Pandas, NumPy, Matplotlib, and Nibabel.</li>
 </ul>
-<p>To get the required packages, we recommend <a class="reference external" href="https://www.anaconda.com/download/#macos">Anaconda</a>.</p>
+<p>To get the required Python packages, we recommend starting with <a class="reference external" href="https://www.anaconda.com/download/#macos">Anaconda</a>.</p>
 </div>
 </div>
 

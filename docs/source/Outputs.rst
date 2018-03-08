@@ -37,6 +37,7 @@ Several files relevant to qunatification of the PET volume are stored here:
 
 pngs
 ====
-This folder contains 256 .png files. They are snapshots of coronal slices of the coregistered PET volume (vols/PET_coreg.nii.gz) overlaid oto the subjects structural volume (pngs/orig.nii.gz)
+This folder contains 256 .png files. They are snapshots of coronal slices of the coregistered PET volume (vols/PET_coreg.nii.gz) overlaid 
+onto the subjects structural volume (pngs/orig.nii.gz)
 
 
